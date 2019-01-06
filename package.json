@@ -2,6 +2,7 @@
   "name": "enpaki",
   "version": "0.1.0",
   "description": "A minimalist bundler for Node.js applications",
+  "private": true,
   "main": "index.js",
   "bin": "cli.js",
   "scripts": {
