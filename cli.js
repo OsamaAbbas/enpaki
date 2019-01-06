@@ -7,6 +7,8 @@ const enpaki = require('./index.js');
 
 let args = process.argv.slice(2);
 
+// replace each short flag with its keyword
+// so that we only check for the keyword later
 if (args.includes('-e')) {
   args[args.indexOf('-e')] = '--entry';
 }
@@ -42,6 +44,7 @@ const program = {
     if (entryFlagIdx === -1) {
       return false;
     } else {
+      // get the argument that comes after `--entry` flag
       return path.resolve(args[entryFlagIdx + 1]);
     }
   }()),
@@ -67,6 +70,7 @@ const program = {
     if (includeFlagIdx === -1) {
       return [];
     } else {
+      // get everything between `--include` flag and the next flag
       return args.slice(includeFlagIdx + 1, nextFlagIdx);
     }
   }()),
@@ -94,8 +98,10 @@ if (program.entryScript) {
   });
 
   if (program.outScript) {
+    // wrtie the output file
     fs.writeFileSync(program.outScript, bundle, 'utf-8');
   } else {
+    // or just send the bundle to stdout
     process.stdout.write(bundle);
   }
 }
