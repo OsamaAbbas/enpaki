@@ -107,8 +107,10 @@ const parseFile = function _parseFileFunction(filename, options = {}) {
   }
 
   // TODO: it's better to change this to streams.
-  childs = childs.forEach(location => {
-    code += _parseFileFunction(location, options);
+  childs.forEach(location => {
+    if (!_parseFileFunction.parsedFiles.includes(location)) {
+      code += _parseFileFunction(location, options);
+    }
   });
 
   return code;
