@@ -17,6 +17,10 @@ if (args.includes('-o')) {
   args[args.indexOf('-o')] = '--out';
 }
 
+if (args.includes('--output')) {
+  args[args.indexOf('-o')] = '--out';
+}
+
 if (args.includes('-i')) {
   args[args.indexOf('-i')] = '--include';
 }
