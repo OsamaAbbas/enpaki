@@ -13,11 +13,19 @@ if (args.includes('-e')) {
   args[args.indexOf('-e')] = '--entry';
 }
 
-if (args.includes('-o')) {
-  args[args.indexOf('-o')] = '--out';
+if (args.includes('--compiler')) {
+  args[args.indexOf('--compiler')] = '--compilers';
+}
+
+if (args.includes('-c')) {
+  args[args.indexOf('-c')] = '--compilers';
 }
 
 if (args.includes('--output')) {
+  args[args.indexOf('--output')] = '--out';
+}
+
+if (args.includes('-o')) {
   args[args.indexOf('-o')] = '--out';
 }
 
@@ -91,6 +99,20 @@ const program = {
     } else {
       return args.slice(excludeFlagIdx + 1, nextFlagIdx);
     }
+  }()),
+
+  compilers: (function () {
+
+    let compilersFlagIdx = args.indexOf('--compilers');
+
+    let nextFlag = args.slice(compilersFlagIdx + 1).filter(arg => arg[0] === '-')[0];
+    let nextFlagIdx = nextFlag ? args.lastIndexOf(nextFlag) : Infinity;
+
+    if (compilersFlagIdx === -1) {
+      return [];
+    } else {
+      return args.slice(compilersFlagIdx + 1, nextFlagIdx);
+    }
   }())
 };
 
@@ -98,7 +120,8 @@ if (program.entryScript) {
 
   let bundle = enpaki(program.entryScript, {
     include: program.include,
-    exclude: program.exclude
+    exclude: program.exclude,
+    compilers: program.compilers
   });
 
   if (program.outScript) {

@@ -128,11 +128,6 @@ const enpaki = function (entryScript, opts = {}) {
 
   opts.compilers = opts.compilers || [];
 
-  if (typeof opts.compilers['.json'] == 'undefined') {
-    let jsonCompiler = require('./compilers/json.js');
-    options.compilers[jsonCompiler.extname] = jsonCompiler;
-  }
-
   if (opts.compilers) {
     // TODO: we need to give the user the ability to provide his compilers
     //       I don't have a definite answer yet, but maybe we implement a flag
@@ -145,9 +140,14 @@ const enpaki = function (entryScript, opts = {}) {
     // compilerModule is a string, it can be something like `./typescript-compiler.json`
     // or any other format that `require` function understands.
     opts.compilers.forEach(compilerModule => {
-      let compilerFunction = require(compilerModule);
+      let compilerFunction = require(locate(compilerModule, options.basedir));
       options.compilers[compilerFunction.extname] = compilerFunction;
     });
+  }
+
+  if (typeof options.compilers['.json'] == 'undefined') {
+    let jsonCompiler = require('./compilers/json.js');
+    options.compilers[jsonCompiler.extname] = jsonCompiler;
   }
 
   let moduleIdentity = path.basename(entryScript);
