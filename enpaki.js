@@ -35,13 +35,13 @@ class enpaki extends Readable {
 
     if (Array.isArray(opts.compilers) && opts.compilers.length) {
       opts.compilers.forEach(filename => {
-        this.addCompiler(filename);
+        this.addCompiler(path.resolve(filename));
       });
     }
 
     if (Array.isArray(opts.include) && opts.include.length) {
       opts.include.forEach(filename => {
-        this.includeModule(filename);
+        this.includeModule(path.resolve(filename));
       });
     }
 
@@ -80,7 +80,7 @@ class enpaki extends Readable {
   addCompiler(filename) {
 
     try {
-      let compilerFunction = require(locate(filename, this.basedir));
+      let compilerFunction = require(filename);
       this.compilers[compilerFunction.extname] = compilerFunction;
     } catch (error) {
 
@@ -126,15 +126,8 @@ class enpaki extends Readable {
 
   includeModule(filename) {
 
-    try {
-      let location = locate(filename, this.basedir);
-      if (!this.includeList.includes(location)) {
-        this.includeList.push(location);
-      }
-    } catch (error) {
-      console.error(`can't add "${filename}" to the include list:`);
-      console.error(error);
-      process.exit(1);
+    if (!this.includeList.includes(filename)) {
+      this.includeList.push(filename);
     }
 
   } // includeModule
@@ -145,9 +138,7 @@ class enpaki extends Readable {
       let location = locate(filename, this.basedir);
       this.excludeList.push(location);
     } catch (error) {
-      console.error(`can't add "${filename}" to the exclude list:`);
-      console.error(error);
-      process.exit(1);
+      this.excludeList.push(filename);
     }
 
   } // excludeModule
@@ -220,6 +211,7 @@ class enpaki extends Readable {
         if (locate.stat(pkgFile).isFile()) {
           this.includeModule(pkgFile);
         }
+        // FIXME: I guess this will fail if package.json is not in the same directory as filename
       }
     }
 
