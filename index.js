@@ -42,6 +42,10 @@ const parseFile = function _parseFileFunction(filename, options = {}) {
       .replace(/#!.*/, '') /* remove shebang characters */
       .replace(_parseFileFunction.REGEX_REQUIRE, (match, moduleName) => {
 
+        if (options.exclude.includes(moduleName)) {
+          return match;
+        }
+
         let location;
 
         try {
@@ -63,7 +67,7 @@ const parseFile = function _parseFileFunction(filename, options = {}) {
         if (!locate.isCore(location)) {
           // not core module, so it needs to be included.
           // TODO: I think here we should implement the `--exclude` flag.
-          if (!_parseFileFunction.parsedFiles.includes(location)) {
+          if (!_parseFileFunction.parsedFiles.includes(location) && !options.exclude.includes(location)) {
             // not already parsed? so push it to childs array
             childs.push(location);
 
@@ -81,6 +85,11 @@ const parseFile = function _parseFileFunction(filename, options = {}) {
           childIdentity = location;
         }
 
+        // this fix is to make sure that excluded modules will be loaded from filesystem
+        if (options.exclude.includes(location)) {
+          childIdentity = './' + childIdentity;
+        }
+
         // now replace whatever you had with its new identity
         return `require('${childIdentity}')`;
       })) +
@@ -91,15 +100,7 @@ const parseFile = function _parseFileFunction(filename, options = {}) {
   if (options.include.length) {
 
     // add include modules to the children that will be parsed soon
-    childs = childs.concat(options.include.map(moduleName => {
-      try {
-        return locate(moduleName, path.dirname(filename));
-      } catch (error) {
-        console.log(moduleName);
-        console.log(error);
-        process.exit(1);
-      }
-    }));
+    childs = childs.concat(options.include);
 
     // empty the array, because the same `options` object will be given to
     // `parseFile` function, and we want these modules to be included once.
@@ -120,15 +121,12 @@ const enpaki = function (entryScript, opts = {}) {
 
   let options = {
     basedir: path.dirname(entryScript),
-    compilers: {},
-    include: opts.include,
-    exclude: opts.exclude, /* TODO: this needs to be implemented */
-    excludeTypes: opts.excludeTypes /* TODO: this too, and it needs to be there in cli.js */
+    compilers: {}
   };
 
   opts.compilers = opts.compilers || [];
 
-  if (opts.compilers) {
+  if (opts.compilers.length > 0) {
     // TODO: we need to give the user the ability to provide his compilers
     //       I don't have a definite answer yet, but maybe we implement a flag
     //       called `--compiler` which accept the same format as `--include`.
@@ -149,6 +147,27 @@ const enpaki = function (entryScript, opts = {}) {
     let jsonCompiler = require('./compilers/json.js');
     options.compilers[jsonCompiler.extname] = jsonCompiler;
   }
+
+  // resolve includes and excludes relative to basedir
+
+  options.include = opts.include.map(moduleName => {
+    try {
+      return locate(moduleName, options.basedir);
+    } catch (error) {
+      console.error(moduleName);
+      console.error(error);
+      process.exit(1);
+    }
+  });
+
+  options.exclude = opts.exclude.map(moduleName => {
+    try {
+      return locate(moduleName, options.basedir);
+    } catch (error) {
+      return moduleName;
+    }
+  });
+
 
   let moduleIdentity = path.basename(entryScript);
 

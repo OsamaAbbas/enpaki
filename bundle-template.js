@@ -92,8 +92,12 @@ var nodeModulesPaths = (start) => {
 
 var __dynamic_require = function (moduleParent, moduleName) {
   var basedir = path.dirname( path.resolve(moduleParent) );
-  var location = locate(moduleName, basedir);
-  return __require(moduleParent, path.relative( __dirname, location ), true);
+  try {
+    var location = locate(moduleName, basedir);
+    return __require(moduleParent, path.relative( __dirname, location ), true);
+  } catch(error) {
+    return __require(moduleParent, moduleName, true);
+  }
 };
 
 var __require = function (moduleParent, moduleName, skipDynamic) {
