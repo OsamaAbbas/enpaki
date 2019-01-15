@@ -90,13 +90,13 @@ var nodeModulesPaths = (start) => {
     .reverse();
 };
 
-var __dynamic_require = function (moduleName, moduleParent) {
+var __dynamic_require = function (moduleParent, moduleName) {
   var basedir = path.dirname( path.resolve(moduleParent) );
   var location = locate(moduleName, basedir);
-  return __require(path.relative( __dirname, location ), moduleParent);
+  return __require(moduleParent, path.relative( __dirname, location ), true);
 };
 
-var __require = function (moduleParent, moduleName) {
+var __require = function (moduleParent, moduleName, skipDynamic) {
   if (isCore(moduleName)) {
     return require(moduleName);
   }
@@ -112,16 +112,21 @@ var __require = function (moduleParent, moduleName) {
       } else {
         _enpakiCache[moduleName].parent = _enpakiCache[moduleParent];
       }
-      _enpakiModules[moduleName].call(this, _enpakiCache[moduleName].exports, __require.bind(__require, moduleParent), _enpakiCache[moduleName], __filename_fix(moduleName), __dirname_fix(moduleName));
+      _enpakiModules[moduleName].call(this, _enpakiCache[moduleName].exports, __require.bind(__require, moduleName), _enpakiCache[moduleName], __filename_fix(moduleName), __dirname_fix(moduleName));
       _enpakiCache[moduleName].loaded = true;
     }
     return _enpakiCache[moduleName].exports;
   } else {
     try {
-      return require(moduleName);
+      if (skipDynamic) {
+        return require(moduleName);
+      } else {
+        return __dynamic_require(moduleParent, moduleName);
+      }
     } catch (error) {
       console.log("\\n");
       console.error(error.message);
+      process.exit(1);
     }
   }
 };
