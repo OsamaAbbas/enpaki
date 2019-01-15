@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const package = require('./package.json');
 const enpaki = require('./enpaki.js');
 
 let args = process.argv.slice(2);
@@ -21,12 +22,12 @@ if (args.includes('-c')) {
   args[args.indexOf('-c')] = '--compilers';
 }
 
-if (args.includes('--output')) {
-  args[args.indexOf('--output')] = '--out';
+if (args.includes('--out')) {
+  args[args.indexOf('--out')] = '--output';
 }
 
 if (args.includes('-o')) {
-  args[args.indexOf('-o')] = '--out';
+  args[args.indexOf('-o')] = '--output';
 }
 
 if (args.includes('-i')) {
@@ -63,7 +64,7 @@ const program = {
 
   outScript: (function () {
 
-    let outFlagIdx = args.indexOf('--out');
+    let outFlagIdx = args.indexOf('--output');
 
     if (outFlagIdx === -1) {
       return false;
@@ -122,7 +123,7 @@ if (program.entryScript) {
     include: program.include,
     exclude: program.exclude,
     compilers: program.compilers
-  })
+  });
 
   if (program.outScript) {
     // wrtie the output file
@@ -136,29 +137,32 @@ if (program.entryScript) {
 
 else if (program.flags.includes('--version')) {
 
-  const package = require('./package.json');
   console.log(package.name, 'v' + package.version);
 }
 
 else {
 
-  console.log(`
-  Usage: enpaki --entry a.js [--include b.js] [--exclude c.js]
+  console.log(`Usage: enpaki --entry script.js [--output bundle.js]
 
-  Options:
+Options:
 
-    -e, --entry           the entry script of the bundle
+-e, --entry    <file>              The entry script of the bundle.
+-o, --output   <file>              Write the output into <file>.
 
-    -i, --include         include these scripts into the bundle
-    -x, --exclude         exclude these scripts from the bundle
-                          
-                          both include and exclude accept:
-                              * a javascript file (for example: utils.js)
-                              * a module name (for example: express, hapi, ... etc)
-                              * a glob pattern (for example: node_modules/*)
+-i, --include  <file1> <file2>     Include these scripts into the bundle.
+-x, --exclude  <file1> <file2>     Exclude these scripts from the bundle.
+-c, --compiler <file1> <file2>     Use these compilers.
 
-    -h, --help            output usage information
-    -v, --version         output enpaki version
+  --include, --exclude and --compiler accept:
+    * a javascript file            (for example: utils.js).
+    * a module name                (for example: express, hapi, ... etc).
+    * a glob pattern               (for example: node_modules/*).
+
+-h, --help            Display this information.
+-v, --version         Display version information.
+
+For bug reporting:
+<${package.bugs.url}>
 `);
 
   // console.log("\n\n------\n\n");
