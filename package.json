@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "A minimalist bundler for Node.js applications",
   "private": true,
-  "main": "index.js",
+  "main": "enpaki.js",
   "bin": "cli.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

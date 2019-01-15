@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const enpaki = require('./index.js');
+const enpaki = require('./enpaki.js');
 
 let args = process.argv.slice(2);
 
@@ -118,18 +118,19 @@ const program = {
 
 if (program.entryScript) {
 
-  let bundle = enpaki(program.entryScript, {
+  let bundleStream = new enpaki(program.entryScript, {
     include: program.include,
     exclude: program.exclude,
     compilers: program.compilers
-  });
+  })
 
   if (program.outScript) {
     // wrtie the output file
-    fs.writeFileSync(program.outScript, bundle, 'utf-8');
+    let outputStream = fs.createWriteStream(program.outScript);
+    bundleStream.pipe(outputStream);
   } else {
     // or just send the bundle to stdout
-    process.stdout.write(bundle);
+    bundleStream.pipe(process.stdout);
   }
 }
 
