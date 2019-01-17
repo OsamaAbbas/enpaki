@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Returns a templated bundle header
+ * @param {String} __entry_script__ The entry script
+ * @return {String}
+ */
 exports.BUNDLE_HEADER = (__entry_script__) => `/** start of bundle */
 ;(function () {
 var path = require('path');
@@ -144,6 +149,10 @@ var __dirname_fix = function (dirname) {
 };
 `;
 
+/**
+ * Returns an enpaki bundled module
+ * @param {String} __file__ The relative path to the module
+ */
 exports.FILE_HEADER = (__file__) => `
 /** module: ${__file__} */
 _enpakiModules['${__file__}'] = function (exports, require, module, __filename, __dirname) {
@@ -154,6 +163,10 @@ return module.exports;
 }; /** end module: ${__file__} */
 `;
 
+/**
+ * Closes the bundle
+ * @param {String} __entry_script__ The entry script
+ */
 exports.BUNDLE_FOOTER = (__entry_script__) => `
 if (typeof module === 'object') {
   module.exports = __require(null, '${__entry_script__}');
@@ -161,5 +174,5 @@ if (typeof module === 'object') {
   return __require(null, '${__entry_script__}');
 }
 }());
-/** end of bunble */
+/** end of bundle */
 `;
