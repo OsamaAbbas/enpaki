@@ -2,13 +2,12 @@
 
 const fs = require('fs');
 
-const compiler = function(filename) {
-  
-  let src = fs.readFileSync(filename, 'utf-8');
-
-  return 'module.exports = ' + src + ';';
+module.exports = {
+  getSupportedExtensions() {
+    return ['.json'];
+  },
+  compile(filename) {
+    let src = fs.readFileSync(filename, 'utf-8');
+    return 'module.exports = ' + src + ';';   
+  }
 };
-
-compiler.extname = '.json';
-
-module.exports = compiler;
