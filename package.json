@@ -21,9 +21,22 @@
     "concat"
   ],
   "author": "Osama Abbas <pw.osama@gmail.com>",
+  "contributors": [
+    {
+      "name": "Osama Abbas",
+      "email": "pw.osama@gmail.com"
+    },
+    {
+      "name": "Steve Baldwin",
+      "url": "https://github.com/stevebaldwin21"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/OsamaAbbas/enpaki/issues"
   },
-  "homepage": "https://github.com/OsamaAbbas/enpaki#readme"
+  "homepage": "https://github.com/OsamaAbbas/enpaki#readme",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
 }
