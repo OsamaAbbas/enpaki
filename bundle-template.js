@@ -11,7 +11,6 @@ var path = require('path');
 
 var _enpakiModules = {};
 var _enpakiCache = {};
-var _isCached = {};
 
 var isCore = function (moduleName) {
   try {
@@ -95,27 +94,25 @@ var nodeModulesPaths = (start) => {
     .reverse();
 };
 
-var __dynamic_require = function (moduleParent, moduleName) {
-  var basedir = path.dirname( path.resolve(moduleParent) );
-  try {
-    var location = locate(moduleName, basedir);
-    return __require(moduleParent, path.relative( __dirname, location ), true);
-  } catch(error) {
-    return __require(moduleParent, moduleName, true);
-  }
-};
+var __require = function (moduleParent, moduleName) {
 
-var __require = function (moduleParent, moduleName, skipDynamic) {
   if (isCore(moduleName)) {
     return require(moduleName);
   }
+
+  var basedir = path.dirname(path.resolve(moduleParent));
+
+  try {
+    var location = locate(moduleName, basedir);
+    moduleName = path.relative(__dirname, location);
+  } catch (error) { }
+
   if (_enpakiModules[moduleName] && _enpakiModules[moduleName].call) {
-    if (!_isCached[moduleName]) {
+    if (!_enpakiCache[moduleName]) {
       _enpakiCache[moduleName] = {
         exports: {},
         loaded: false
       };
-      _isCached[moduleName] = true;
       if (moduleName === '${__entry_script__}' && typeof require === 'function') {
         require.main = _enpakiCache['${__entry_script__}'];
       } else {
@@ -127,11 +124,7 @@ var __require = function (moduleParent, moduleName, skipDynamic) {
     return _enpakiCache[moduleName].exports;
   } else {
     try {
-      if (skipDynamic) {
-        return require(moduleName);
-      } else {
-        return __dynamic_require(moduleParent, moduleName);
-      }
+      return require(moduleName);
     } catch (error) {
       console.log("\\n");
       console.error(error.message);
@@ -169,9 +162,9 @@ return module.exports;
  */
 exports.BUNDLE_FOOTER = (__entry_script__) => `
 if (typeof module === 'object') {
-  module.exports = __require(null, '${__entry_script__}');
+  module.exports = __require(__filename, './${__entry_script__}');
 } else {
-  return __require(null, '${__entry_script__}');
+  return __require(__filename, './${__entry_script__}');
 }
 }());
 /** end of bundle */

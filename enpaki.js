@@ -77,7 +77,7 @@ module.exports = class Enpaki extends Readable {
     this.excludeList = [];
 
     if (Array.isArray(opts.compilers) && opts.compilers.length) {
-      opts.compilers.forEach(comp => this.addCompiler(comp));
+      opts.compilers.forEach(comp => this.addCompiler(require(locate(comp))));
     }
 
     if (Array.isArray(opts.include) && opts.include.length) {
@@ -121,11 +121,11 @@ module.exports = class Enpaki extends Readable {
    */
   addCompiler(compiler) {
     if ((typeof compiler.getSupportedExtensions === 'function') == false) {
-      throw new Error("Compiler object doesn't implement getSupportedExtensions method")
+      throw new Error("Compiler object doesn't implement getSupportedExtensions method");
     }
 
-    var supportExtensions = compiler.getSupportedExtensions()
-    supportExtensions.forEach((extension) => this.compilers[extension] = compiler)
+    var supportExtensions = compiler.getSupportedExtensions();
+    supportExtensions.forEach((extension) => this.compilers[extension] = compiler);
   }
 
   /**
@@ -245,7 +245,7 @@ module.exports = class Enpaki extends Readable {
     let moduleIdentity = this.moduleIdentity(filename);
 
     if (this.excludeList.includes(filename)) {
-      return `require('./${moduleIdentity}')`;
+      return match;
     }
 
     if (!this.parsedFiles.includes(filename)) {
@@ -258,6 +258,6 @@ module.exports = class Enpaki extends Readable {
         // FIXME: I guess this will fail if package.json is not in the same directory as filename
       }
     }
-    return `require('${moduleIdentity}')`;
+    return match;
   }
 }
