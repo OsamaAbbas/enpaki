@@ -100,7 +100,7 @@ var __require = function (moduleParent, moduleName) {
     return require(moduleName);
   }
 
-  var basedir = path.dirname(path.resolve(moduleParent));
+  var basedir = path.dirname(path.resolve(__dirname, moduleParent));
 
   try {
     var location = locate(moduleName, basedir);
@@ -126,7 +126,6 @@ var __require = function (moduleParent, moduleName) {
     try {
       return require(moduleName);
     } catch (error) {
-      console.log("\\n");
       console.error(error.message);
       process.exit(1);
     }
