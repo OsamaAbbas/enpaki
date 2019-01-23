@@ -1,133 +1,61 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const path = require('path');
 
 const package = require('./package.json');
 const enpaki = require('./enpaki.js');
 
-let args = process.argv.slice(2);
+function readargv(argv = process.argv) {
 
-// replace each short flag with its keyword
-// so that we only check for the keyword later
-if (args.includes('-e')) {
-  args[args.indexOf('-e')] = '--entry';
-}
-
-if (args.includes('--compiler')) {
-  args[args.indexOf('--compiler')] = '--compilers';
-}
-
-if (args.includes('-c')) {
-  args[args.indexOf('-c')] = '--compilers';
-}
-
-if (args.includes('--out')) {
-  args[args.indexOf('--out')] = '--output';
-}
-
-if (args.includes('-o')) {
-  args[args.indexOf('-o')] = '--output';
-}
-
-if (args.includes('-i')) {
-  args[args.indexOf('-i')] = '--include';
-}
-
-if (args.includes('-x')) {
-  args[args.indexOf('-x')] = '--exclude';
-}
-
-if (args.includes('-h')) {
-  args[args.indexOf('-h')] = '--help';
-}
-
-if (args.includes('-v')) {
-  args[args.indexOf('-v')] = '--version';
-}
-
-const program = {
-
-  flags: args.filter(arg => arg[0] === '-'),
-
-  entryScript: (function () {
-
-    let entryFlagIdx = args.indexOf('--entry');
-
-    if (entryFlagIdx === -1) {
-      return false;
-    } else {
-      // get the argument that comes after `--entry` flag
-      return path.resolve(args[entryFlagIdx + 1]);
+  let program = {
+    argv: argv.slice(0),
+    args: [],
+    flags: argv.filter(arg => arg[0] === '-'),
+    read(...flags) {
+      return flags.reduce((prev, current) => {
+        return prev.concat(program[current]);
+      }, []).filter(f => f);
+    },
+    readOne(...flags) {
+      return this.read(...flags)[0];
+    },
+    hasFlag(...flags) {
+      return flags.some(f => !!program[f]);
     }
-  }()),
+  };
 
-  outScript: (function () {
+  let lastFlag;
 
-    let outFlagIdx = args.indexOf('--output');
+  program.argv.slice(2).forEach(parameter => {
 
-    if (outFlagIdx === -1) {
-      return false;
+    if (program.flags.includes(parameter)) {
+      lastFlag = parameter;
+      program[lastFlag] = program[lastFlag] || [];
     } else {
-      return path.resolve(args[outFlagIdx + 1]);
+      if (lastFlag) {
+        program[lastFlag].push(parameter);
+      } else {
+        program.args.push(parameter);
+      }
     }
-  }()),
-
-  include: (function () {
-
-    let includeFlagIdx = args.indexOf('--include');
-
-    let nextFlag = args.slice(includeFlagIdx + 1).filter(arg => arg[0] === '-')[0];
-    let nextFlagIdx = nextFlag ? args.lastIndexOf(nextFlag) : Infinity;
-
-    if (includeFlagIdx === -1) {
-      return [];
-    } else {
-      // get everything between `--include` flag and the next flag
-      return args.slice(includeFlagIdx + 1, nextFlagIdx);
-    }
-  }()),
-
-  exclude: (function () {
-
-    let excludeFlagIdx = args.indexOf('--exclude');
-
-    let nextFlag = args.slice(excludeFlagIdx + 1).filter(arg => arg[0] === '-')[0];
-    let nextFlagIdx = nextFlag ? args.lastIndexOf(nextFlag) : Infinity;
-
-    if (excludeFlagIdx === -1) {
-      return [];
-    } else {
-      return args.slice(excludeFlagIdx + 1, nextFlagIdx);
-    }
-  }()),
-
-  compilers: (function () {
-
-    let compilersFlagIdx = args.indexOf('--compilers');
-
-    let nextFlag = args.slice(compilersFlagIdx + 1).filter(arg => arg[0] === '-')[0];
-    let nextFlagIdx = nextFlag ? args.lastIndexOf(nextFlag) : Infinity;
-
-    if (compilersFlagIdx === -1) {
-      return [];
-    } else {
-      return args.slice(compilersFlagIdx + 1, nextFlagIdx);
-    }
-  }())
-};
-
-if (program.entryScript) {
-
-  let bundleStream = new enpaki(program.entryScript, {
-    include: program.include,
-    exclude: program.exclude,
-    compilers: program.compilers
   });
 
-  if (program.outScript) {
+  return program;
+}
+
+let program = readargv();
+
+if (program.hasFlag('--entry', '-e')) {
+
+  let bundleStream = new enpaki(program.readOne('--entry', '-e'), {
+    include: program.read('--include', '-i'),
+    exclude: program.read('--exclude', '-x'),
+    compilers: program.read('--compiler', '--compilers', '-c')
+  });
+
+  if (program.hasFlag('--output', '--out', '-o')) {
     // wrtie the output file
-    let outputStream = fs.createWriteStream(program.outScript);
+    let outputStream = fs.createWriteStream(program.readOne('--output', '--out', '-o'));
     bundleStream.pipe(outputStream);
   } else {
     // or just send the bundle to stdout
@@ -135,7 +63,7 @@ if (program.entryScript) {
   }
 }
 
-else if (program.flags.includes('--version')) {
+else if (program.hasFlag('--version', '-v')) {
 
   console.log(package.name, 'v' + package.version);
 }
@@ -162,9 +90,5 @@ Options:
 -v, --version         Display version information.
 
 For bug reporting:
-<${package.bugs.url}>
-`);
-
-  // console.log("\n\n------\n\n");
-  // console.log(program);
+<${package.bugs.url}>`);
 }
