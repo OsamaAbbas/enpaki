@@ -53,6 +53,14 @@ if (program.hasFlag('--entry', '-e')) {
     compilers: program.read('--compiler', '--compilers', '-c')
   });
 
+  bundleStream.on('error', error => console.error(error));
+
+  bundleStream.on('end', () => {
+    if (bundleStream.errorsList.length) {
+      console.error(bundleStream.errorsList.join('\n'));
+    }
+  });
+
   if (program.hasFlag('--output', '--out', '-o')) {
     // wrtie the output file
     let outputStream = fs.createWriteStream(program.readOne('--output', '--out', '-o'));

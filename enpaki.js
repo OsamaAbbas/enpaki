@@ -58,7 +58,9 @@ module.exports = class Enpaki extends Readable {
     this.basedir = path.dirname(entryScript);
     this.entryScriptIdentity = path.basename(entryScript);
 
+    this.headerSent = false;
     this.parsedFiles = [];
+    this.errorsList = [];
     this.REGEX_REQUIRE = /require\s*\(\s*["']([^"']+)["']\)/g;
     this.compilers = [];
 
@@ -95,9 +97,12 @@ module.exports = class Enpaki extends Readable {
    */
   _read() {
 
-    let proceed = this.push(BUNDLE_HEADER(this.entryScriptIdentity));
-    if (!proceed) {
-      return;
+    if (!this.headerSent) {
+      let proceed = this.push(BUNDLE_HEADER(this.entryScriptIdentity));
+      this.headerSent = true;
+      if (!proceed) {
+        return;
+      }
     }
 
     while (this.includeList.length) {
@@ -237,9 +242,9 @@ module.exports = class Enpaki extends Readable {
     try {
       filename = locate(moduleName, path.dirname(parentModule));
     } catch (error) {
-      console.error(`can't locate "${moduleName}" (required by "${parentModule}"):`);
-      console.log(error);
-      process.exit(1);
+      this.errorsList.push(`can't locate "${moduleName}" (required by "${parentModule}"):`);
+      this.emit('error', error);
+      return match;
     }
 
     let moduleIdentity = this.moduleIdentity(filename);
