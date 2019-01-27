@@ -12,100 +12,104 @@ var path = require('path');
 var _enpakiModules = {};
 var _enpakiCache = {};
 
-var isCore = function (moduleName) {
+const SYSTEM_ROOT = '/';
+
+function isFile(filename) {
+  return !!_enpakiModules[filename];
+}
+
+function locate(modulePath, directory = process.cwd()) {
+
+  if (isCore(modulePath)) {
+    return modulePath;
+  }
+
+  directory = path.resolve(directory);
+
+  let candidateList = candidateFiles(path.join(directory, modulePath));
+
+  if (!['.', path.sep].includes(modulePath[0])) {
+    candidateList = candidateList.concat(makeFlat(nodeModulesFolders(modulePath, directory).map(candidateFiles)));
+  }
+
+  for (let filename of candidateList) {
+    if (isFile(filename)) {
+      return filename;
+    }
+  }
+
+  throw new Error(\`Cannot find module '\${modulePath}' from '\${directory}'\`);
+}
+
+function isCore(modulePath) {
   try {
-    return require.resolve(moduleName).indexOf(path.sep) === -1;
+    return require.resolve(modulePath).indexOf(path.sep) === -1;
   } catch (error) {
     return false;
   }
-};
+}
 
-var stat = function (filename) {
-  filename = path.relative(__dirname, filename);
-  return {
-    isFile: _ => !!_enpakiModules[filename]
-  };
-};
+function nodeModulesFolders(modulePath, directory) {
 
-var locate = function (moduleName, basedir) {
-  basedir = basedir || '.';
-  if (moduleName[0] == '/') {
-    basedir = path.parse(process.cwd()).root;
-  }
-  if (isCore(moduleName)) {
-    return moduleName;
-  }
-  if (moduleName.startsWith('./') || moduleName.startsWith('/') || moduleName.startsWith('../')) {
-    var result = loadFile(path.resolve(basedir, moduleName));
-    if (result) {
-      return result;
-    }
-  }
-  if (['.', './', '/', '../'].includes(moduleName.slice(0, 2))) {
-    var result = loadDirectory(path.resolve(basedir, moduleName));
-    if (result) {
-      return result;
-    }
-  }
-  var result = loadNodeModules(moduleName, basedir);
-  if (result) {
-    return result;
-  }
-  throw new Error(\`Cannot find module '\${moduleName}'\`);
-};
+  // modulePath must NOT start with '.' nor '/'
+  // directory must be absolute
 
-var loadFile = (x) => {
-  return ['']
-    .concat(Object.keys(require.extensions))
-    .filter(ext => ext !== '.node')
-    .map(ext => path.resolve(x + ext))
-    .filter(file => stat(file).isFile())[0] || false;
-};
+  let list = [];
 
-var loadIndex = (x) => {
-  return loadFile(path.join(x, 'index'));
-};
+  while (directory !== SYSTEM_ROOT) {
+    list.push(path.join(directory, 'node_modules', modulePath));
+    directory = path.dirname(directory);
+  }
 
-var loadDirectory = (x) => {
-  var pkgFile = path.join(x, 'package.json');
+  list.push(path.join(\`\${SYSTEM_ROOT}node_modules\`, modulePath));
+
+  return list;
+}
+
+function candidateFiles(modulePath) {
+
+  // modulePath must be absolute
+
+  let extensions = Object.keys(require.extensions)
+    .filter(ext => ext !== '.node');
+
+  let asFileList = ['']
+    .concat(extensions)
+    .map(ext => path.join(modulePath + ext));
+
+  let pkgMain = [];
+
   try {
-    var pkg = require(pkgFile);
-    var main = path.join(x, pkg.main);
-    return [loadFile(main), loadIndex(main), loadIndex(x)]
-      .filter(_ => !!_)[0] || false;
-  } catch (error) {
-    return loadIndex(x);
-  }
-};
+    let pkg = __require('/', path.join(modulePath, 'package.json'));
+    if (pkg.main) {
+      pkgMain.push(path.join(modulePath, pkg.main));
+    }
+  } catch (error) { }
 
-var loadNodeModules = (x, start) => {
-  var directories = nodeModulesPaths(start);
-  return directories
-    .map(directory => path.relative(__dirname, directory))
-    .map(directory => [loadFile(path.join(directory, x)), loadDirectory(path.join(directory, x))])
-    .reduce( (list, item) => list.concat(item), [] )
-    .filter(_ => !!_)[0] || false;
-};
+  let asFolderList = extensions.map(ext => path.join(modulePath, 'index' + ext));
 
-var nodeModulesPaths = (start) => {
-  return start
-    .split(path.sep)
-    .map( (_, i, parts) => parts.slice(0, i + 1).join(path.sep) + '/node_modules' )
-    .reverse();
-};
+  return asFileList.concat(pkgMain).concat(asFolderList);
+}
 
-var __require = function (moduleParent, moduleName) {
+function makeFlat(arraysList) {
+  return arraysList.reduce((a, b) => a.concat(b), []);
+}
+
+function __require(moduleParent, moduleName) {
 
   if (isCore(moduleName)) {
     return require(moduleName);
   }
 
-  var basedir = path.dirname(path.resolve(__dirname, moduleParent));
+  var basedir = path.dirname(moduleParent);
 
-  try {
-    var location = locate(moduleName, basedir);
-    moduleName = path.relative(__dirname, location);
-  } catch (error) { }
+  if (moduleName.endsWith('/package.json')) {
+    moduleName = path.join(basedir, moduleName);
+  } else {
+    try {
+      moduleName = locate(moduleName, basedir);
+    } catch (error) { }
+  }
 
   if (_enpakiModules[moduleName] && _enpakiModules[moduleName].call) {
     if (!_enpakiCache[moduleName]) {
@@ -118,26 +122,21 @@ var __require = function (moduleParent, moduleName) {
       } else {
         _enpakiCache[moduleName].parent = _enpakiCache[moduleParent];
       }
-      _enpakiModules[moduleName].call(this, _enpakiCache[moduleName].exports, __require.bind(__require, moduleName), _enpakiCache[moduleName], __filename_fix(moduleName), __dirname_fix(moduleName));
+      _enpakiModules[moduleName].call(this, _enpakiCache[moduleName].exports, __require.bind(__require, moduleName), _enpakiCache[moduleName], _fix_filename(moduleName), _fix_dirname(moduleName));
       _enpakiCache[moduleName].loaded = true;
     }
     return _enpakiCache[moduleName].exports;
   } else {
-    try {
-      return require(moduleName);
-    } catch (error) {
-      console.error(error.message);
-      process.exit(1);
-    }
+    return require(moduleName);
   }
+}
+
+function _fix_filename(filename) {
+  return path.resolve(__dirname, filename.slice(1));
 };
 
-var __filename_fix = function (filename) {
-  return require('path').resolve(__dirname, filename);
-};
-
-var __dirname_fix = function (dirname) {
-  return require('path').resolve(__dirname, dirname, '/../');
+function _fix_dirname(dirname) {
+  return path.resolve(__dirname, dirname.slice(1), '/../');
 };
 `;
 
@@ -161,9 +160,9 @@ return module.exports;
  */
 exports.BUNDLE_FOOTER = (__entry_script__) => `
 if (typeof module === 'object') {
-  module.exports = __require(__filename, './${__entry_script__}');
+  module.exports = __require('/', '${__entry_script__}');
 } else {
-  return __require(__filename, './${__entry_script__}');
+  return __require('/', '${__entry_script__}');
 }
 }());
 /** end of bundle */
