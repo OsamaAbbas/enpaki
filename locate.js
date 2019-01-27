@@ -24,8 +24,6 @@ function loki(modulePath, directory = process.cwd()) {
   let candidateList = candidateFiles(path.join(directory, modulePath));
 
   if (!['.', path.sep].includes(modulePath[0])) {
-  //   candidateList = candidateFiles(path.join(directory, modulePath));
-  // } else {
     candidateList = candidateList.concat(makeFlat(nodeModulesFolders(modulePath, directory).map(candidateFiles)));
   }
 

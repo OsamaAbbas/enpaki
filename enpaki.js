@@ -53,14 +53,16 @@ module.exports = class Enpaki extends Readable {
     perf('init');
 
     if (typeof entryScript !== 'string' || entryScript.length == 0) {
-      throw new Error(`entry script must be a typeof string, typeof ${typeof entryScript} given`)
+      throw new Error(`entry script must be a typeof string, typeof ${typeof entryScript} given`);
     }
 
     //SB: extracted into a stream object for easier implementation and seperation of enpaki options.
     super(opts.stream || {});
 
+    entryScript = path.resolve(entryScript);
+
     this.basedir = path.dirname(entryScript);
-    this.entryScriptIdentity = path.basename(entryScript);
+    this.entryScriptIdentity = '/' + path.basename(entryScript);
 
     this.headerSent = false;
     this.parsedFiles = [];
@@ -79,15 +81,15 @@ module.exports = class Enpaki extends Readable {
       }
     });
 
-    this.includeList = [entryScript]; // TODO: include locate and stat here.
+    this.includeList = [entryScript]; // TODO: include l-ocate and stat here.
     this.excludeList = [];
 
     if (Array.isArray(opts.compilers) && opts.compilers.length) {
-      opts.compilers.forEach(comp => this.addCompiler(require(locate(comp))));
+      opts.compilers.forEach(compiler => this.addCompiler(require(locate(compiler))));
     }
 
     if (Array.isArray(opts.include) && opts.include.length) {
-      opts.include.forEach(filename => this.includeModule(path.resolve(filename)));
+      opts.include.forEach(filename => this.includeModule(locate(filename)));
     }
 
     if (Array.isArray(opts.exclude) && opts.exclude.length) {
@@ -212,7 +214,7 @@ module.exports = class Enpaki extends Readable {
    * @param {EnpakiFile} filename The filename to obtain the identity of a module
    */
   moduleIdentity(filename) {
-    return path.relative(this.basedir, filename);
+    return '/' + path.relative(this.basedir, filename);
   }
 
   /**
@@ -256,7 +258,7 @@ module.exports = class Enpaki extends Readable {
     try {
       filename = locate(moduleName, path.dirname(parentModule));
     } catch (error) {
-      this.errorsList.push(`can't locate "${moduleName}" (required by "${parentModule}"):`);
+      this.errorsList.push(`Unable to locate "${moduleName}" (required by "${parentModule}")`);
       this.emit('error', error);
       return match;
     }
@@ -271,10 +273,13 @@ module.exports = class Enpaki extends Readable {
       this.includeModule(filename);
       if (moduleIdentity.includes('node_modules')) {
         let pkgFile = path.join(path.dirname(filename), 'package.json');
-        if (locate.stat(pkgFile).isFile()) {
+        while (!locate.isFile(pkgFile) && pkgFile !== '/package.json') {
+          pkgFile = path.join(path.dirname(pkgFile), '../', 'package.json');
+        }
+        if (pkgFile !== '/package.json') {
           this.includeModule(pkgFile);
         }
-        // FIXME: I guess this will fail if package.json is not in the same directory as filename
+        // FIXME: this part is horribly written and needs to be fixed
       }
     }
     return match;
