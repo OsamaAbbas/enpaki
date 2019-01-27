@@ -71,7 +71,7 @@ module.exports = class Enpaki extends Readable {
     //prebuilt compliers which are packed with enpaki
     this.addCompiler({
       getSupportedExtensions() {
-        return ['json'];
+        return ['.json'];
       },
       compile(filename) {
         let src = fs.readFileSync(filename, 'utf-8');
