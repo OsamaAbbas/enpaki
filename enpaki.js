@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const Readable = require('stream').Readable;
 const locate = require('./locate.js');
+const perf = require('./perf.js');
 
 const {
   BUNDLE_HEADER,
@@ -48,6 +49,9 @@ module.exports = class Enpaki extends Readable {
    * @param {EnpakiBundlerOptions} opts Options
    */
   constructor(entryScript, opts = {}) {
+
+    perf('init');
+
     if (typeof entryScript !== 'string' || entryScript.length == 0) {
       throw new Error(`entry script must be a typeof string, typeof ${typeof entryScript} given`)
     }
@@ -98,6 +102,7 @@ module.exports = class Enpaki extends Readable {
   _read() {
 
     if (!this.headerSent) {
+      perf(`bundling: BUNDLE_HEADER::${this.entryScriptIdentity}`);
       let proceed = this.push(BUNDLE_HEADER(this.entryScriptIdentity));
       this.headerSent = true;
       if (!proceed) {
@@ -106,14 +111,20 @@ module.exports = class Enpaki extends Readable {
     }
 
     while (this.includeList.length) {
+
+      let fileToProcess = this.includeList.shift();
+
+      perf(`bundling: ${fileToProcess}`);
+
       //remove it to ensure we don't repeat files
-      let fileContent = this.readFile(this.includeList.shift());
+      let fileContent = this.readFile(fileToProcess);
       let proceed = this.push(fileContent);
       if (!proceed) {
         return;
       }
     }
 
+    perf(`bundling: BUNDLE_FOOTER::${this.entryScriptIdentity}`);
     this.push(BUNDLE_FOOTER(this.entryScriptIdentity));
 
     this.push(null);
@@ -129,7 +140,7 @@ module.exports = class Enpaki extends Readable {
       throw new Error("Compiler object doesn't implement getSupportedExtensions method");
     }
 
-    var supportExtensions = compiler.getSupportedExtensions();
+    let supportExtensions = compiler.getSupportedExtensions();
     supportExtensions.forEach((extension) => this.compilers[extension] = compiler);
   }
 
@@ -166,7 +177,10 @@ module.exports = class Enpaki extends Readable {
    * @return {String} The compiled result of the file
    */
   compile(filename) {
-    return this.getCompiler(path.extname(filename)).compile(filename)
+
+    let compiler = this.getCompiler(path.extname(filename));
+    let result = compiler.compile(filename);
+    return result;
   }
 
   /**

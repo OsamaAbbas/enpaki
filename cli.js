@@ -4,6 +4,7 @@ const fs = require('fs');
 
 const package = require('./package.json');
 const enpaki = require('./enpaki.js');
+const perf = require('./perf.js');
 
 function readargv(argv = process.argv) {
 
@@ -58,6 +59,11 @@ if (program.hasFlag('--entry', '-e')) {
   bundleStream.on('end', () => {
     if (bundleStream.errorsList.length) {
       console.error(bundleStream.errorsList.join('\n'));
+    } else {
+      if (program.hasFlag('--verbose')) {
+        perf('bundled: OK');
+        perf.dump();
+      }
     }
   });
 
@@ -80,23 +86,24 @@ else {
 
   console.log(`Usage: enpaki --entry script.js [--output bundle.js]
 
-Options:
+ Options:
 
--e, --entry    <file>              The entry script of the bundle.
--o, --output   <file>              Write the output into <file>.
+ -e, --entry    <file>              The entry script of the bundle.
+ -o, --output   <file>              Write the output into <file>.
 
--i, --include  <file1> <file2>     Include these scripts into the bundle.
--x, --exclude  <file1> <file2>     Exclude these scripts from the bundle.
--c, --compiler <file1> <file2>     Use these compilers.
+ -i, --include  <file1> <file2>     Include these scripts into the bundle.
+ -x, --exclude  <file1> <file2>     Exclude these scripts from the bundle.
+ -c, --compiler <file1> <file2>     Use these compilers.
 
-  --include, --exclude and --compiler accept:
+   --include, --exclude and --compiler accept:
     * a javascript file            (for example: utils.js).
     * a module name                (for example: express, hapi, ... etc).
     * a glob pattern               (for example: node_modules/*).
 
--h, --help            Display this information.
--v, --version         Display version information.
+ --verbose             Display detailed information about the operation.
+ -h, --help            Display this information.
+ -v, --version         Display version information.
 
-For bug reporting:
-<${package.bugs.url}>`);
+ For bug reporting:
+ <${package.bugs.url}>`);
 }
