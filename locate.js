@@ -54,7 +54,7 @@ const locate = function (moduleName, basedir) {
   }
 
   //    b. LOAD_AS_DIRECTORY(Y + X)
-  if (['.', './', '/', '../'].includes(moduleName.slice(0, 2))) {
+  if (moduleName[0] == '.' || ['./', '/', '../'].includes(moduleName.slice(0, 2))) {
 
     var result = loadDirectory(path.resolve(basedir, moduleName));
 
