@@ -85,6 +85,7 @@ function candidateFiles(modulePath) {
     try {
       let pkg = require(pkgFile);
       if (pkg.main) {
+        pkgMain = extensions.map(ext => path.join(modulePath, pkg.main + ext));
         pkgMain.push(path.join(modulePath, pkg.main));
       }
     } catch (error) { }
