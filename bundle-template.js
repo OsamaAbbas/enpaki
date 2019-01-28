@@ -13,6 +13,27 @@ var _enpakiModules = {};
 var _enpakiCache = {};
 
 var BUNDLE_ROOT = '/';
+`;
+
+/**
+ * Returns an enpaki bundled module
+ * @param {String} __file__ The relative path to the module
+ */
+exports.FILE_HEADER = (__file__) => `
+/** module: ${__file__} */
+_enpakiModules['${__file__}'] = function (exports, require, module, __filename, __dirname) {
+`;
+
+exports.FILE_FOOTER = (__file__) => `
+return module.exports;
+}; /** end module: ${__file__} */
+`;
+
+/**
+ * Closes the bundle
+ * @param {String} __entry_script__ The entry script
+ */
+exports.BUNDLE_FOOTER = (__entry_script__) => `
 
 function isFile(filename) {
   return !!_enpakiModules[filename];
@@ -143,32 +164,12 @@ function __require(moduleParent, moduleName) {
 
 function _fix_filename(filename) {
   return path.resolve(__dirname, filename.slice(1));
-};
+}
 
 function _fix_dirname(dirname) {
   return path.resolve(__dirname, dirname.slice(1), '/../');
-};
-`;
+}
 
-/**
- * Returns an enpaki bundled module
- * @param {String} __file__ The relative path to the module
- */
-exports.FILE_HEADER = (__file__) => `
-/** module: ${__file__} */
-_enpakiModules['${__file__}'] = function (exports, require, module, __filename, __dirname) {
-`;
-
-exports.FILE_FOOTER = (__file__) => `
-return module.exports;
-}; /** end module: ${__file__} */
-`;
-
-/**
- * Closes the bundle
- * @param {String} __entry_script__ The entry script
- */
-exports.BUNDLE_FOOTER = (__entry_script__) => `
 if (typeof module === 'object') {
   module.exports = __require(BUNDLE_ROOT, '${__entry_script__}');
 } else {
