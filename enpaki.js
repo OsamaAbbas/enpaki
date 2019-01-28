@@ -229,7 +229,7 @@ module.exports = class Enpaki extends Readable {
     let moduleIdentity = this.moduleIdentity(filename);
 
     code = code
-      .replace(/#!.*/, '')
+      .replace(/^#!.*/, '')
       .replace(this.REGEX_REQUIRE, (match, moduleName) => this.requireModule(match, moduleName, filename));
 
     this.parsedFiles.push(filename);
