@@ -49,7 +49,7 @@ function isCore(modulePath) {
   }
 }
 
-function nodeModulesFolders(modulePath, directory) {
+function nodeModulesFolders(moduleName, directory) {
 
   if (['.', path.sep].includes(moduleName[0])) {
     throw new Error('module name must NOT start with "." nor "/"');
@@ -61,11 +61,11 @@ function nodeModulesFolders(modulePath, directory) {
   let list = [];
 
   while (directory !== SYSTEM_ROOT) {
-    list.push(path.join(directory, 'node_modules', modulePath));
+    list.push(path.join(directory, 'node_modules', moduleName));
     directory = path.dirname(directory);
   }
 
-  list.push(path.join(\`\${SYSTEM_ROOT}node_modules\`, modulePath));
+  list.push(path.join(\`\${SYSTEM_ROOT}node_modules\`, moduleName));
 
   return list;
 }
