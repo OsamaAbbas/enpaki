@@ -51,8 +51,12 @@ function isCore(modulePath) {
 
 function nodeModulesFolders(modulePath, directory) {
 
-  // modulePath must NOT start with '.' nor '/'
-  // directory must be absolute
+  if (['.', path.sep].includes(moduleName[0])) {
+    throw new Error('module name must NOT start with "." nor "/"');
+  }
+  if (!path.isAbsolute(directory)) {
+    throw new Error('directory must be absolute');
+  }
 
   let list = [];
 
@@ -68,7 +72,9 @@ function nodeModulesFolders(modulePath, directory) {
 
 function candidateFiles(modulePath) {
 
-  // modulePath must be absolute
+  if (!path.isAbsolute(modulePath)) {
+    throw new Error('module path must be absolute');
+  }
 
   let extensions = Object.keys(require.extensions)
     .filter(ext => ext !== '.node');
