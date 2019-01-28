@@ -13,7 +13,7 @@ function isFile(filename) {
   }
 }
 
-function loki(modulePath, directory = process.cwd()) {
+function locate(modulePath, directory = process.cwd()) {
 
   if (isCore(modulePath)) {
     return modulePath;
@@ -79,13 +79,16 @@ function candidateFiles(modulePath) {
     .map(ext => path.join(modulePath + ext));
 
   let pkgMain = [];
+  let pkgFile = path.join(modulePath, 'package.json');
 
-  try {
-    let pkg = require(path.join(modulePath, 'package.json'));
-    if (pkg.main) {
-      pkgMain.push(path.join(modulePath, pkg.main));
-    }
-  } catch (error) { }
+  if (isFile(pkgFile)) {
+    try {
+      let pkg = require(pkgFile);
+      if (pkg.main) {
+        pkgMain.push(path.join(modulePath, pkg.main));
+      }
+    } catch (error) { }
+  }
 
   let asFolderList = extensions.map(ext => path.join(modulePath, 'index' + ext));
 
@@ -96,7 +99,7 @@ function makeFlat(arraysList) {
   return arraysList.reduce((a, b) => a.concat(b), []);
 }
 
-loki.isCore = isCore;
-loki.isFile = isFile;
+locate.isCore = isCore;
+locate.isFile = isFile;
 
-module.exports = loki;
+module.exports = locate;

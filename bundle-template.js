@@ -83,14 +83,17 @@ function candidateFiles(modulePath) {
     .concat(extensions)
     .map(ext => path.join(modulePath + ext));
 
-  let pkgMain = [];
-
-  try {
-    let pkg = __require('/', path.join(modulePath, 'package.json'));
-    if (pkg.main) {
-      pkgMain.push(path.join(modulePath, pkg.main));
+    let pkgMain = [];
+    let pkgFile = path.join(modulePath, 'package.json');
+  
+    if (isFile(pkgFile)) {
+      try {
+        let pkg = __require('/', pkgFile);
+        if (pkg.main) {
+          pkgMain.push(path.join(modulePath, pkg.main));
+        }
+      } catch (error) { }
     }
-  } catch (error) { }
 
   let asFolderList = extensions.map(ext => path.join(modulePath, 'index' + ext));
 
