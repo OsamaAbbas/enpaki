@@ -33,8 +33,8 @@ benchmark.dump = () => {
 
   benchmarkModule.marks.forEach(e => {
 
-    let timeFmt = `${benchmarkModule.colours.green}[${e.hrtime}ms ${benchmarkModule.colours.orange}+${e.lhrtime}ms]`
-    console.log(`${timeFmt.padEnd(25, ' ')} ${benchmarkModule.colours.white}${e.msg} `)
+    let timeFmt = `${benchmarkModule.colours.green}[${e.hrtime}ms ${benchmarkModule.colours.orange}+${e.lhrtime}ms]`;
+    console.log(`${timeFmt.padEnd(27, ' ')} ${benchmarkModule.colours.white}${e.msg}`);
   });
 };
 

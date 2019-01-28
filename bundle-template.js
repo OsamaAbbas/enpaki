@@ -12,7 +12,7 @@ var path = require('path');
 var _enpakiModules = {};
 var _enpakiCache = {};
 
-const SYSTEM_ROOT = '/';
+var BUNDLE_ROOT = '/';
 
 function isFile(filename) {
   return !!_enpakiModules[filename];
@@ -26,13 +26,13 @@ function locate(modulePath, directory = process.cwd()) {
 
   directory = path.resolve(directory);
 
-  let candidateList = candidateFiles(path.join(directory, modulePath));
+  var candidateList = candidateFiles(path.join(directory, modulePath));
 
   if (!['.', path.sep].includes(modulePath[0])) {
     candidateList = candidateList.concat(makeFlat(nodeModulesFolders(modulePath, directory).map(candidateFiles)));
   }
 
-  for (let filename of candidateList) {
+  for (var filename of candidateList) {
     if (isFile(filename)) {
       return filename;
     }
@@ -58,14 +58,14 @@ function nodeModulesFolders(moduleName, directory) {
     throw new Error('directory must be absolute');
   }
 
-  let list = [];
+  var list = [];
 
-  while (directory !== SYSTEM_ROOT) {
+  while (directory !== BUNDLE_ROOT) {
     list.push(path.join(directory, 'node_modules', moduleName));
     directory = path.dirname(directory);
   }
 
-  list.push(path.join(\`\${SYSTEM_ROOT}node_modules\`, moduleName));
+  list.push(path.join(\`\${BUNDLE_ROOT}node_modules\`, moduleName));
 
   return list;
 }
@@ -76,19 +76,19 @@ function candidateFiles(modulePath) {
     throw new Error('module path must be absolute');
   }
 
-  let extensions = Object.keys(require.extensions)
+  var extensions = Object.keys(require.extensions)
     .filter(ext => ext !== '.node');
 
-  let asFileList = ['']
+  var asFileList = ['']
     .concat(extensions)
     .map(ext => path.join(modulePath + ext));
 
-    let pkgMain = [];
-    let pkgFile = path.join(modulePath, 'package.json');
+    var pkgMain = [];
+    var pkgFile = path.join(modulePath, 'package.json');
   
     if (isFile(pkgFile)) {
       try {
-        let pkg = __require('/', pkgFile);
+        var pkg = __require(BUNDLE_ROOT, pkgFile);
         if (pkg.main) {
           pkgMain = extensions.map(ext => path.join(modulePath, pkg.main + ext));
           pkgMain.push(path.join(modulePath, pkg.main));
@@ -96,7 +96,7 @@ function candidateFiles(modulePath) {
       } catch (error) { }
     }
 
-  let asFolderList = extensions.map(ext => path.join(modulePath, 'index' + ext));
+  var asFolderList = extensions.map(ext => path.join(modulePath, 'index' + ext));
 
   return asFileList.concat(pkgMain).concat(asFolderList);
 }
@@ -113,7 +113,7 @@ function __require(moduleParent, moduleName) {
 
   var basedir = path.dirname(moduleParent);
 
-  if (moduleName.endsWith('/package.json')) {
+  if (moduleName.endsWith('package.json')) {
     moduleName = path.join(basedir, moduleName);
   } else {
     try {
@@ -170,9 +170,9 @@ return module.exports;
  */
 exports.BUNDLE_FOOTER = (__entry_script__) => `
 if (typeof module === 'object') {
-  module.exports = __require('/', '${__entry_script__}');
+  module.exports = __require(BUNDLE_ROOT, '${__entry_script__}');
 } else {
-  return __require('/', '${__entry_script__}');
+  return __require(BUNDLE_ROOT, '${__entry_script__}');
 }
 }());
 /** end of bundle */
