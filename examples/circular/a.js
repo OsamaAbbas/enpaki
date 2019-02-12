@@ -1,10 +1,7 @@
 'use strict';
 
+console.log('inside a.js: before require b.js');
+
 const b = require('./b');
 
-console.log('__filename: ' + __filename);
-
-module.exports = {
-  file: __filename,
-  b
-};
+console.log('inside a.js: after require b.js');
