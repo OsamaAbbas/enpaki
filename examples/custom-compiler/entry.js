@@ -1,11 +1,5 @@
 'use strict';
 
-const a = require('./a');
-const b = require('./b');
+const data = require('./data');
 
-console.log('__filename: ' + __filename);
-
-module.exports = {
-  file: __filename,
-  a, b
-};
+console.log('data.value: ' + data.value);
