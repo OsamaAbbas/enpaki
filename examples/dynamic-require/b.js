@@ -1,5 +1,3 @@
 'use strict';
 
-module.exports = {
-  file: __filename
-};
+console.log('inside b.js');

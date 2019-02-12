@@ -1,7 +1,3 @@
 'use strict';
 
-const b = require('./b');
-
-module.exports = {
-  file: __filename
-};
+console.log('inside a.js');
