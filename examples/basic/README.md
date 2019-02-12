@@ -1,5 +1,5 @@
 ## Basic Example
-This example shows you a very straigforward example of an entry script that requires two other script, and one of them requires the other too.
+This example shows you a very straightforward example of an entry script that requires two other script, and one of them requires the other too.
 
 ### How to run this example?
 
