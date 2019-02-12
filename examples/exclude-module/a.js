@@ -1,7 +1,3 @@
 'use strict';
 
-console.log('a.js: ' + __filename);
-
-module.exports = {
-  file: __filename
-};
+console.log('inside a.js');
