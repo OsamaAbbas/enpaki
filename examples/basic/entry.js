@@ -3,9 +3,8 @@
 const a = require('./a');
 const b = require('./b');
 
-console.log('__filename: ' + __filename);
+console.log('entry.js: ' + __filename);
 
 module.exports = {
-  file: __filename,
-  a, b
+  file: __filename
 };

@@ -2,9 +2,8 @@
 
 const b = require('./b');
 
-console.log('__filename: ' + __filename);
+console.log('a.js: ' + __filename);
 
 module.exports = {
-  file: __filename,
-  b
+  file: __filename
 };

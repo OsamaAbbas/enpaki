@@ -1,6 +1,6 @@
 'use strict';
 
-console.log('__filename: ' + __filename);
+console.log('b.js: ' + __filename);
 
 module.exports = {
   file: __filename
