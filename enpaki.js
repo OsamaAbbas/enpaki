@@ -226,7 +226,7 @@ module.exports = class Enpaki extends Readable {
    */
   readFile(filename) {
     let code = this.compile(filename);
-    let moduleIdentity = this.moduleIdentity(filename);
+    let moduleIdentity = process.platform == "win32" ? this.moduleIdentity(filename).split("\\").join("/") : this.moduleIdentity(filename);
 
     code = code
       .replace(/^#!.*/, '')
