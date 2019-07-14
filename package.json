@@ -1,6 +1,6 @@
 {
   "name": "enpaki",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A minimalist bundler for Node.js applications",
   "private": false,
   "main": "enpaki.js",
@@ -29,6 +29,10 @@
     {
       "name": "Steve Baldwin",
       "url": "https://github.com/stevebaldwin21"
+    },
+    {
+      "name": "H1ghBre4k3r",
+      "email": "h1ghbre4k3r@dev.bre4k3r.de"
     }
   ],
   "license": "MIT",
